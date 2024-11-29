@@ -89,6 +89,11 @@ async function selectBrigadas(req, res) {
       return res.status(404).json({ error: 'Usuario no registrado' });
     }
 
+    // Verificar si el usuario ya tiene dos brigadas registradas
+    if (usuario.brigadas && usuario.brigadas.length === 2) {
+      return res.status(400).json({ error: 'El usuario ya está registrado en dos brigadas y no puede registrarse en más.' });
+    }
+
     // Verificar si el usuario ya está registrado en alguna de las brigadas seleccionadas
     let brigadasYaRegistradas = [];
     for (let brigada_id of brigada_ids) {
@@ -134,9 +139,10 @@ async function selectBrigadas(req, res) {
     }
 
     // Actualizar el usuario con las brigadas seleccionadas
+    const brigadasActualizadas = usuario.brigadas ? [...usuario.brigadas, ...brigada_ids] : brigada_ids;
     await usuariosCollection.updateOne(
       { usuario_id },
-      { $set: { brigadas: brigada_ids } }
+      { $set: { brigadas: brigadasActualizadas } }
     );
 
     res.status(200).json({ message: 'Brigadas seleccionadas exitosamente' });
@@ -145,6 +151,7 @@ async function selectBrigadas(req, res) {
     res.status(500).json({ error: 'Error al seleccionar brigadas' });
   }
 }
+
 
 
 //funcion para que un usuario ueda ver sus brigadas seleccionadas
@@ -170,7 +177,7 @@ async function getUsuariosBrigadas(req, res) {
     }
 
     if (!usuario.brigadas || usuario.brigadas.length === 0) {
-      return res.status(404).json({ error: 'El usuario no está registrado en ninguna brigada' });
+      return res.status(200).json([]); 
     }
 
     // Obtener información de las brigadas a las que pertenece el usuario
@@ -205,7 +212,7 @@ async function getBrigadaEstudiantes(req, res) {
     }
    
 
-    const usuariosCollection = db.db('Appasear').collection('Usuarios');
+    const usuariosCollection = db.db('Appasear').collection('usuarios');
     const estudiantes = await usuariosCollection.find({ usuario_id: { $in: brigada.usuarios } }).project({ nombre: 1, usuario_id: 1, _id: 0 }).toArray();
 
     if (estudiantes.length === 0) {
@@ -274,7 +281,7 @@ async function getTareasPorBrigada(req, res) {
   try {
     // Utilizar la conexión a la base de datos ya existente
     const db = dbConection.get();
-    const usuariosCollection = db.db('Appasear').collection('Usuarios');
+    const usuariosCollection = db.db('Appasear').collection('usuarios');
     const tareasCollection = db.db('Appasear').collection('Tareas');
     //cambios
     const brigadasCollection = db.db('Appasear').collection('Brigadas');
@@ -327,7 +334,7 @@ async function getTareaCompletada(req, res) {
     // Utilizar la conexión a la base de datos ya existente
     const db = dbConection.get();
     const tareasCollection = db.db('Appasear').collection('Tareas');
-    const usuariosCollection = db.db('Appasear').collection('Usuarios');
+    const usuariosCollection = db.db('Appasear').collection('usuarios');
 
     // Verificar si la tarea existe y ha sido completada
     const tarea = await tareasCollection.findOne({ tarea_id, estado: 'completada' });
