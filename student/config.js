@@ -4,6 +4,6 @@ module.exports = {
         return "mongodb://localhost:27017";
     },
     getPort: function () {
-        return 50000;
+        return 50002;
     }
 }
