@@ -12,8 +12,8 @@ async function getBrigadas(req, res) {
 
   try {
     const db = dbConection.get() // Obtén la base de datos
-    const database = db.db('Brigadas')
-    const brigadasCollection = database.collection('data'); // Colección de brigadas
+    const database = db.db('Appasear')
+    const brigadasCollection = database.collection('Brigadas'); // Colección de brigadas
 
     // Consulta las brigadas del periodo académico
     const brigadas = await brigadasCollection.find({ periodoAcademico }).toArray();
@@ -32,8 +32,8 @@ async function getBrigadasDisponibles(req, res) {
   }
   try {
     const db = dbConection.get();
-    const database = db.db('Brigadas');
-    const brigadasCollection = database.collection('data');
+    const database = db.db('Appasear');
+    const brigadasCollection = database.collection('Brigadas');
 
     // Consulta las brigadas con cupos disponibles
     const brigadas = await brigadasCollection.find({
@@ -75,9 +75,9 @@ async function selectBrigadas(req, res) {
   try {
     // Utilizar la conexión a la base de datos ya existente
     const db = dbConection.get();
-    const database = db.db('Brigadas');
-    const brigadasCollection = database.collection('data');
-    const usuariosCollection = db.db('Usuarios').collection('data');
+    const database = db.db('Appasear');
+    const brigadasCollection = database.collection('Brigadas');
+    const usuariosCollection = db.db('Appasear').collection('usuarios');
 
     // Verificar si el usuario existe
     const usuario = await usuariosCollection.findOne({ usuario_id });
@@ -156,8 +156,8 @@ async function getUsuariosBrigadas(req, res) {
   try {
     // Utilizar la conexión a la base de datos ya existente
     const db = dbConection.get();
-    const usuariosCollection = db.db('Usuarios').collection('data');
-    const brigadasCollection = db.db('Brigadas').collection('data');
+    const usuariosCollection = db.db('Appasear').collection('usuarios');
+    const brigadasCollection = db.db('Appasear').collection('Brigadas');
 
     // Verificar si el usuario existe
     const usuario = await usuariosCollection.findOne({ usuario_id });
@@ -192,7 +192,7 @@ async function getBrigadaEstudiantes(req, res) {
   try {
     // Utilizar la conexión a la base de datos ya existente
     const db = dbConection.get();
-    const brigadasCollection = db.db('Brigadas').collection('data');
+    const brigadasCollection = db.db('Appasear').collection('Brigadas');
 
     // Verificar si la brigada existe y obtener los usuarios registrados
     const brigada = await brigadasCollection.findOne({ brigada_id, periodoAcademico });
@@ -202,7 +202,7 @@ async function getBrigadaEstudiantes(req, res) {
     }
    
 
-    const usuariosCollection = db.db('Usuarios').collection('data');
+    const usuariosCollection = db.db('Appasear').collection('Usuarios');
     const estudiantes = await usuariosCollection.find({ usuario_id: { $in: brigada.usuarios } }).project({ nombre: 1, usuario_id: 1, _id: 0 }).toArray();
 
     if (estudiantes.length === 0) {
@@ -226,7 +226,7 @@ async function completarTarea(req, res) {
   try {
     // Utilizar la conexión a la base de datos ya existente
     const db = dbConection.get();
-    const tareasCollection = db.db('Tareas').collection('data');
+    const tareasCollection = db.db('Appasear').collection('Tareas');
 
     // Verificar si la tarea existe
     const tarea = await tareasCollection.findOne({ tarea_id });
@@ -271,9 +271,9 @@ async function getTareasPorBrigada(req, res) {
   try {
     // Utilizar la conexión a la base de datos ya existente
     const db = dbConection.get();
-    const usuariosCollection = db.db('Usuarios').collection('data');
-    const tareasCollection = db.db('Tareas').collection('data');
-    const brigadasCollection = db.db('Brigadas').collection('data');
+    const usuariosCollection = db.db('Appasear').collection('Usuarios');
+    const tareasCollection = db.db('Appasear').collection('Tareas');
+    const brigadasCollection = db.db('Appasear').collection('Brigadas');
 
     // Verificar si el usuario existe
     const usuario = await usuariosCollection.findOne({ usuario_id });
@@ -322,8 +322,8 @@ async function getTareaCompletada(req, res) {
   try {
     // Utilizar la conexión a la base de datos ya existente
     const db = dbConection.get();
-    const tareasCollection = db.db('Tareas').collection('data');
-    const usuariosCollection = db.db('Usuarios').collection('data');
+    const tareasCollection = db.db('Appasear').collection('Tareas');
+    const usuariosCollection = db.db('Appasear').collection('Usuarios');
 
     // Verificar si la tarea existe y ha sido completada
     const tarea = await tareasCollection.findOne({ tarea_id, estado: 'completada' });
