@@ -273,6 +273,7 @@ async function getTareasPorBrigada(req, res) {
     const db = dbConection.get();
     const usuariosCollection = db.db('Appasear').collection('Usuarios');
     const tareasCollection = db.db('Appasear').collection('Tareas');
+    //cambios
     const brigadasCollection = db.db('Appasear').collection('Brigadas');
 
     // Verificar si el usuario existe
