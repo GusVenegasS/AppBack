@@ -40,6 +40,9 @@ async function getBrigadasDisponibles(req, res) {
       periodoAcademico,
       $where: "this.usuarios.length < 3"
     }).toArray();
+    if (brigadas.length === 0) {
+      return res.status(404).json({ error: 'No existen brigadas disponibles para el periodo académico proporcionado' });
+    }
 
     res.status(200).json(brigadas);
   } catch (error) {
