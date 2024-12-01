@@ -1,8 +1,9 @@
 var express = require('express');
 var studentController = require('../controllers/student')
+var token = require('../../node_project/middlewares/authenticate')
 var router = express.Router();
 // Ruta para obtener brigadas por periodo académico
-router.get('/brigadas', studentController.getBrigadas);
+router.get('/brigadas', token, studentController.getBrigadas);
 
 router.get('/brigadas/disponibles', studentController.getBrigadasDisponibles);
 

@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const mongoose = require('mongoose');
 const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
+const config = require('../config/config')
 
 // Configurar el transportador de nodemailer
 const transporter = nodemailer.createTransport({
@@ -100,7 +101,7 @@ exports.login = async (req, res) => {
     // Generar el token
     const token = jwt.sign(
       { id: usuario._id, email: usuario.correo },
-      process.env.JWT_SECRET || 'clave_secreta', // Usa una clave secreta en las variables de entorno
+      config.getSecret() || 'clave_secreta', // Usa una clave secreta en las variables de entorno
       { expiresIn: '1h' } // Expiración del token
     );
 

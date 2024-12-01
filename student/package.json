@@ -5,12 +5,12 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon index.js"
-
   },
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "back_movil": "file:",
     "cors": "^2.8.5",
     "express": "^4.21.1",
     "mongodb": "^6.10.0"
