@@ -159,7 +159,7 @@ async function obtenerUsuarios(req, res) {
         if (!periodoAcademico) {
             return res.status(400).send({ message: "Período incorrecto", status: 400 });
         }
-        const usuarios = await buscarBrigadas("Appasear", "Usuarios", { periodoAcademico });
+        const usuarios = await buscarBrigadas("Appasear", "usuarios", { periodoAcademico });
         if (usuarios.length > 0) {
             return res.status(200).send(usuarios);
         } else {
