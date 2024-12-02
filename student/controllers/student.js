@@ -229,7 +229,7 @@ async function getBrigadaEstudiantes(req, res) {
 async function completarTarea(req, res) {
   const { tarea_id, asistentes, evidencia, observacion } = req.body;
 
-  if (!tarea_id || !asistentes || !Array.isArray(asistentes) || !observacion) {
+  if (!tarea_id || !asistentes || !Array.isArray(asistentes) || !observacion || !evidencia) {
     return res.status(400).json({ error: 'Tarea, asistentes (array), evidencia y descripción son requeridos.' });
   }
 
@@ -250,13 +250,17 @@ async function completarTarea(req, res) {
       return res.status(400).json({ error: 'La tarea no está en estado para completar.' });
     }
 
+    const formattedEvidencia = evidencia && !evidencia.startsWith('data:image/')
+      ? `data:image/jpeg;base64,${evidencia}`
+      : evidencia;
+
     // Actualizar la tarea con los asistentes, la evidencia y la observación, y marcarla como completada
     await tareasCollection.updateOne(
       { tarea_id },
       {
         $set: {
           asistentes: asistentes,
-          evidencia_id: evidencia,
+          evidencia_id: formattedEvidencia,
           observacion: observacion,
           estado: 'completada'
         }
@@ -283,6 +287,8 @@ async function getTareasPorBrigada(req, res) {
     const db = dbConection.get();
     const usuariosCollection = db.db('Appasear').collection('usuarios');
     const tareasCollection = db.db('Appasear').collection('Tareas');
+
+
     //cambios
     const brigadasCollection = db.db('Appasear').collection('Brigadas');
 
@@ -313,6 +319,10 @@ async function getTareasPorBrigada(req, res) {
       } else {
         tarea.listaAsistentes = [];
       }
+      // Normalizar evidencia si no tiene el prefijo
+      tarea.evidencia_id = tarea.evidencia_id && !tarea.evidencia_id.startsWith('data:image/')
+        ? `data:image/jpeg;base64,${tarea.evidencia_id}`
+        : tarea.evidencia_id;
     }
 
     res.status(200).json(tareas);
