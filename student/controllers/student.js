@@ -41,7 +41,7 @@ async function getBrigadasDisponibles(req, res) {
       $where: "this.usuarios.length < 3"
     }).toArray();
     if (brigadas.length === 0) {
-      return res.status(404).json({ error: 'No existen brigadas disponibles para el periodo académico proporcionado' });
+     return res.status(200).json([]); 
     }
 
     res.status(200).json(brigadas);
@@ -300,7 +300,7 @@ async function getTareasPorBrigada(req, res) {
     }
 
     if (!usuario.brigadas || usuario.brigadas.length === 0) {
-      return res.status(404).json({ error: 'Debe escoger una brigada para poder ver las tareas.' });
+      return res.status(200).json({ error: 'Debe inscribirse en las brigadas para poder ver las tareas.' });;
     }
 
     // Obtener las tareas asociadas a las brigadas del usuario y filtrar por el periodo académico
