@@ -1,18 +1,19 @@
 // admin.js
 const db = require('../db');
+const ExcelJS = require('exceljs');
 
 async function verificarPeriodo(req, res) {
-    console.log('periodo', req.query.periodo)
+    console.log('periodoAVERIFICAR', req.query.periodo)
     try {
         const periodo = req.query.periodo;
         const existePeriodo = await buscarPeriodo("Appasear", "Periodos", { periodo: periodo });
         console.log('existePeriodo', existePeriodo)
         if (!existePeriodo) {
-            return res.status(404).send({ message: "periodo no encontrado", status: 404 })
+            return res.status(404).send({ data: "periodo no encontrado", status: 404 })
         }
 
         if (!existePeriodo.estado) {
-            return res.status(200).send({ status: 200, message: 'Periodo válido' })
+            return res.status(200).send({ status: 200, data: 'Periodo válido' })
         }
 
         if (existePeriodo.estado === 'activo') {
@@ -26,6 +27,8 @@ async function verificarPeriodo(req, res) {
 
         if (existePeriodo.estado === 'finalizado') {
             const documentoFinalizado = {
+                fechaInicio: existePeriodo.fechaInicio,
+                fechaFin: existePeriodo.fechaFin,
                 estado: 'finalizado',
                 fechaFinalización: existePeriodo.fechaFinalizacion
             };
@@ -38,7 +41,7 @@ async function verificarPeriodo(req, res) {
     }
 }
 
-async function brigadas(req, res) {
+async function crearPeriodo(req, res) {
     console.log('body', req.body);
     try {
         const { fechaInicio, fechaFin, periodoAcademico } = req.body;
@@ -47,6 +50,8 @@ async function brigadas(req, res) {
             return res.status(400).send({ message: "Las fechas no pueden estar vacías", status: 400 });
         }
 
+        let fechaInicioPe = new Date(fechaInicio);
+        let fechaFinPe = new Date(fechaFin);
         let fechaInicioDate = new Date(fechaInicio);
         fechaInicioDate.setUTCHours(fechaInicioDate.getUTCHours() + 5);
         let fechaFinDate = new Date(fechaFin);
@@ -126,6 +131,12 @@ async function brigadas(req, res) {
             }
         }
 
+        console.log("fechaaaas antes de enviar")
+        console.log(fechaInicioDate)
+        console.log(fechaFinDate)
+
+        await actualizar("Appasear", "Periodos", { periodo: periodoAcademico }, "activo", null, fechaInicioPe, fechaFinPe)
+
         return res.status(200).send({ message: "Tareas creadas correctamente", status: 200 });
     } catch (error) {
         console.error("Error al crear tareas:", error);
@@ -195,6 +206,55 @@ async function obtenerTarea(req, res) {
 
 }
 
+async function finalizarPeriodo(req, res) {
+    let fechaFinalizacion = new Date();
+    fechaFinalizacion.setUTCHours(fechaFinalizacion.getUTCHours() - 5);
+    console.log('periodoaFinalizar', req.query.periodo)
+    try {
+        const periodo = req.query.periodo
+        await actualizar("Appasear", "Periodos", { periodo: periodo }, "finalizado", fechaFinalizacion);
+        await siguientePeriodo("Appasear", "Periodos");
+        return res.status(200).send({ message: "Periodo finalizado exitosamente", status: 200 })
+    } catch (err) {
+        console.error("error al finalizar el periodo: " + err)
+        return res.status(500).send({ message: "Error al finalizar el periodo", status: 500 });
+    }
+}
+
+async function reporteAsistencias(req, res) {
+    const periodoAcademico = req.query.periodoAcademico;
+    console.log("intentando generar el excel")
+    try {
+        const usuarios = await buscarBrigadas("Appasear", "usuarios", { periodoAcademico })
+        const tareas = await buscarBrigadas("Appasear", "Tareas", { periodoAcademico })
+
+        const asistencias = await contarAsistencias(tareas, usuarios);
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Reporte de Asistencias');
+
+        worksheet.columns = [
+            { header: 'Nombre', key: 'nombre', width: 30 },
+            { header: 'Correo', key: 'correo', width: 30 },
+            { header: 'Teléfono', key: 'telefono', width: 15 },
+            { header: 'Total Asistencias', key: 'totalAsistencias', width: 20 },
+        ];
+
+        Object.values(asistencias).forEach(asistencia => {
+            worksheet.addRow(asistencia);
+        });
+
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', 'attachment; filename=reporte_asistencias.xlsx');
+
+        // Escribir el libro en la respuesta
+        await workbook.xlsx.write(res);
+        res.end();
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).send({ message: "Error al crear el reporte" });
+    }
+}
 async function buscarPeriodo(Base, Coleccion, documento) {
     console.log("Buscar", documento);
     const client = db.get();
@@ -272,7 +332,6 @@ async function getTarea(Base, Coleccion, documento) {
     }
 }
 
-
 async function saveDB(Base, Coleccion, documento) {
     const client = db.get();
     const database = client.db(Base);
@@ -287,10 +346,122 @@ async function saveDB(Base, Coleccion, documento) {
     }
 }
 
+async function actualizar(Base, Coleccion, documento, estado, fechaFinalizacion = null, fechaInicio = null, fechaFin = null) {
+    const client = db.get();
+    const database = client.db(Base);
+    const collection = database.collection(Coleccion);
+
+    console.log("actualizaaaaaar")
+    console.log(fechaInicio)
+    console.log(fechaFin)
+    // Construir el objeto de actualización dinámicamente
+    const updateFields = { estado: estado };
+
+    if (fechaInicio) {
+        updateFields.fechaInicio = fechaInicio;
+    }
+
+    if (fechaFin) {
+        updateFields.fechaFin = fechaFin;
+    }
+
+    if (fechaFinalizacion) {
+        updateFields.fechaFinalizacion = fechaFinalizacion;
+    }
+
+    try {
+        const result = await collection.updateOne(
+            documento,
+            { $set: updateFields }
+        );
+
+        if (result.matchedCount === 0) {
+            console.log("No se encontraron documentos para actualizar");
+        } else {
+            console.log("Documento actualizado");
+        }
+        return result;
+    } catch (error) {
+        console.error("Error en la actualización:", error);
+        throw new Error("Error al insertar el documento");
+    }
+}
+
+async function ultimoPeriodo(Base, Coleccion) {
+    const client = db.get();
+    const database = client.db(Base);
+    const collection = database.collection(Coleccion);
+
+    try {
+        const ultimoDocumento = await collection.findOne({}, { sort: { _id: -1 } });
+        if (!ultimoDocumento) {
+            return null;
+        }
+        return ultimoDocumento.periodo;
+    } catch (error) {
+        console.error("Error al obtener el último periodo:", error);
+        throw new Error("Error al obtener el último periodo");
+    }
+}
+
+async function siguientePeriodo(Base, Coleccion) {
+    const client = db.get();
+    const database = client.db(Base);
+    const collection = database.collection(Coleccion);
+    try {
+        const periodoAnterior = await ultimoPeriodo(Base, Coleccion);
+        const nuevoPeriodo = calcularPeriodo(periodoAnterior);
+        await collection.insertOne({ periodo: nuevoPeriodo })
+    } catch (error) {
+        console.error("Error al crear nuevo periodo", error);
+    }
+}
+
+function calcularPeriodo(ultimoPeriodo) {
+    if (!ultimoPeriodo) {
+        return "2024-A";
+    }
+
+    const [year, sem] = ultimoPeriodo.split("-");
+    let nuevoYear = parseInt(year);
+    let nuevoSem = sem === "A" ? "B" : "A";
+
+    if (nuevoSem === "A") {
+        nuevoYear += 1;
+    }
+
+    return `${nuevoYear}-${nuevoSem}`;
+}
+
+async function contarAsistencias(tareas, usuarios) {
+    const asistencias = {};
+
+    usuarios.forEach(usuario => {
+        asistencias[usuario.usuario_id] = {
+            nombre: usuario.nombre,
+            correo: usuario.correo,
+            telefono: usuario.telefono,
+            totalAsistencias: 0,
+        };
+    });
+
+    tareas.forEach(tarea => {
+        tarea.asistentes.forEach(asistenteId => {
+            if (asistencias[asistenteId]) {
+                asistencias[asistenteId].totalAsistencias += 1;
+            }
+        });
+    });
+
+    return asistencias;
+}
+
 module.exports = {
     verificarPeriodo,
-    brigadas,
+    crearPeriodo,
     obtenerBrigadas,
     obtenerUsuarios,
-    obtenerTarea
+    obtenerTarea,
+    finalizarPeriodo,
+    reporteAsistencias
 };
