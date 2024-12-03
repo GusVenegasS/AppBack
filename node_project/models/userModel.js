@@ -17,6 +17,7 @@ const usuarioSchema = new mongoose.Schema({
   },
   brigadas: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Brigada' }],
   fechaCreacion: { type: Date, default: Date.now },
+  rol: { type: String, required: true },
 });
 
 module.exports = mongoose.model('Usuario', usuarioSchema);

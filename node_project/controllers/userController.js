@@ -1,4 +1,5 @@
 const Usuario = require('../models/userModel');
+const Periodo = require('../models/periodoModel');
 const bcrypt = require('bcrypt');
 const mongoose = require('mongoose');
 const nodemailer = require('nodemailer');
@@ -85,7 +86,7 @@ exports.createStudents = async (req, res) => {
 
 // Login de usuario
 exports.login = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, periodo} = req.body;
 
   try {
     const usuario = await Usuario.findOne({ correo: email });
@@ -100,7 +101,7 @@ exports.login = async (req, res) => {
 
     // Generar el token
     const token = jwt.sign(
-      { id: usuario._id, email: usuario.correo },
+      { id: usuario._id, email: usuario.correo, rol: usuario.rol, periodo: periodo,},
       config.getSecret() || 'clave_secreta', // Usa una clave secreta en las variables de entorno
       { expiresIn: '1h' } // Expiración del token
     );
@@ -108,7 +109,7 @@ exports.login = async (req, res) => {
     res.status(200).json({
       message: 'Inicio de sesión exitoso',
       token,
-      user: { id: usuario._id, name: usuario.nombre, email: usuario.correo },
+      user: { id: usuario._id, name: usuario.nombre, email: usuario.correo, rol: usuario.rol, periodo },
     });
   } catch (error) {
     console.error(error);
@@ -135,5 +136,17 @@ exports.getUserProfile = async (req, res) => {
   } catch (err) {
     console.log('Error:', err);  // Log para errores específicos
     res.status(500).json({ message: 'Server error' });
+  }
+};
+
+exports.getPeriodos = async (req, res) => {
+  try {
+    // Obtener todos los documentos y devolver solo el campo 'periodo'
+    const periodos = await Periodo.find({}, 'periodo');
+    const nombres = periodos.map((periodo) => periodo.periodo); // Extraer solo los nombres
+    res.status(200).json(nombres); // Devolver solo los nombres de los períodos
+  } catch (error) {
+    console.error('Error al obtener los períodos:', error);
+    res.status(500).json({ message: 'Error al obtener los períodos' });
   }
 };
