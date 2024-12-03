@@ -6,7 +6,7 @@ async function verificarPeriodo(req, res) {
     console.log('periodoAVERIFICAR', req.query.periodo)
     try {
         const periodo = req.query.periodo;
-        const existePeriodo = await buscarPeriodo("Appasear", "Periodos", { periodo: periodo });
+        const existePeriodo = await buscarPeriodo("Appasear", "periodos", { periodo: periodo });
         console.log('existePeriodo', existePeriodo)
         if (!existePeriodo) {
             return res.status(404).send({ data: "periodo no encontrado", status: 404 })
@@ -135,7 +135,7 @@ async function crearPeriodo(req, res) {
         console.log(fechaInicioDate)
         console.log(fechaFinDate)
 
-        await actualizar("Appasear", "Periodos", { periodo: periodoAcademico }, "activo", null, fechaInicioPe, fechaFinPe)
+        await actualizar("Appasear", "periodos", { periodo: periodoAcademico }, "activo", null, fechaInicioPe, fechaFinPe)
 
         return res.status(200).send({ message: "Tareas creadas correctamente", status: 200 });
     } catch (error) {
@@ -212,8 +212,8 @@ async function finalizarPeriodo(req, res) {
     console.log('periodoaFinalizar', req.query.periodo)
     try {
         const periodo = req.query.periodo
-        await actualizar("Appasear", "Periodos", { periodo: periodo }, "finalizado", fechaFinalizacion);
-        await siguientePeriodo("Appasear", "Periodos");
+        await actualizar("Appasear", "periodos", { periodo: periodo }, "finalizado", fechaFinalizacion);
+        await siguientePeriodo("Appasear", "periodos");
         return res.status(200).send({ message: "Periodo finalizado exitosamente", status: 200 })
     } catch (err) {
         console.error("error al finalizar el periodo: " + err)
