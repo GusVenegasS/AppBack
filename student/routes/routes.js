@@ -11,7 +11,7 @@ router.get('/brigadas/disponibles', studentController.getBrigadasDisponibles);
 router.post('/brigadas/seleccionar', studentController.selectBrigadas);
 
 //ruta para ver las brigadas a la sque pertenece un usuario
-router.get('/usuarios/:usuario_id/brigadas', studentController.getUsuariosBrigadas);
+router.get('/usuarios/:usuario_id/brigadas/:periodoAcademico', studentController.getUsuariosBrigadas);
 
 // Ruta para obtener los estudiantes de una brigada específica
 router.get('/brigada/estudiantes', studentController.getBrigadaEstudiantes);
