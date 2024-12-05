@@ -258,6 +258,13 @@ async function completarTarea(req, res) {
       ? `data:image/jpeg;base64,${evidencia}`
       : evidencia;
 
+
+       // Añadir la fecha de realización con formato específico
+    const fechaRealizacion = new Date();
+    fechaRealizacion.setSeconds(0);
+    fechaRealizacion.setMilliseconds(0);
+    fechaRealizacion.setHours(fechaRealizacion.getHours() - 5);
+
     // Actualizar la tarea con los asistentes, la evidencia y la observación, y marcarla como completada
     await tareasCollection.updateOne(
       { tarea_id },
@@ -266,7 +273,9 @@ async function completarTarea(req, res) {
           asistentes: asistentes,
           evidencia_id: formattedEvidencia,
           observacion: observacion,
-          estado: 'completada'
+          estado: 'completada',
+          fechaRealizacion: fechaRealizacion
+
         }
       }
     );
