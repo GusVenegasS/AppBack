@@ -151,3 +151,32 @@ exports.getPeriodos = async (req, res) => {
     res.status(500).json({ message: 'Error al obtener los períodos' });
   }
 };
+
+exports.actualizarTelefono = async (req, res) => {
+  try {
+    const userId = req.usuario.id; // Asumimos que el middleware extrae el ID del usuario autenticado
+    const { telefono } = req.body;
+
+    const usuario = await Usuario.findOneAndUpdate({usuario_id: req.usuario.id }, { telefono },
+      { new: true });
+
+    if (!usuario) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    if (!telefono || !/^\d{8,10}$/.test(telefono)) {
+      return res.status(400).json({ error: 'Número de teléfono no válido.' });
+    }
+
+//    const usuario = await Usuario.findByIdAndUpdate(
+//      userId,
+//      { telefono },
+//      { new: true }
+//    );
+
+    res.json({ mensaje: 'Número de teléfono actualizado con éxito.', usuario });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error del servidor.' });
+  }
+};
