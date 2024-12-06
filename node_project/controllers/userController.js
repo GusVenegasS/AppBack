@@ -168,15 +168,58 @@ exports.actualizarTelefono = async (req, res) => {
       return res.status(400).json({ error: 'Número de teléfono no válido.' });
     }
 
-//    const usuario = await Usuario.findByIdAndUpdate(
-//      userId,
-//      { telefono },
-//      { new: true }
-//    );
-
     res.json({ mensaje: 'Número de teléfono actualizado con éxito.', usuario });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error del servidor.' });
+  }
+};
+
+exports.cambiarContrasena = async (req, res) => {
+  const { correo } = req.body;
+
+  try {
+    const usuario = await Usuario.findOne({ correo });
+    if (!usuario) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    // Generar nueva contraseña aleatoria
+    const nuevaContrasena = Array(12)
+      .fill(null)
+      .map(() => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()'[Math.floor(Math.random() * 72)])
+      .join('');
+
+    // Hash de la nueva contraseña
+    const hashedPassword = await bcrypt.hash(nuevaContrasena, 10);
+
+    // Actualizar contraseña
+    usuario.contraseña = hashedPassword;
+    await usuario.save();
+
+    // Enviar correo con la nueva contraseña
+    const mailOptions = {
+      from: 'ronnie.malo12@gmail.com',
+      to: correo,
+      subject: 'Contraseña actualizada',
+      text: `Hola ${usuario.nombre}, tu contraseña ha sido actualizada con éxito. 
+      
+      Tu nueva contraseña es: ${nuevaContrasena}.
+      Por favor, cámbiala después de iniciar sesión.`,
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error(`Error al enviar correo a ${correo}:`, error);
+        return res.status(500).json({ message: 'Error al enviar correo', error });
+      } else {
+        console.log(`Correo enviado a ${correo}:`, info.response);
+      }
+    });
+
+    res.status(200).json({ message: 'Contraseña actualizada y correo enviado' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error al cambiar la contraseña', error });
   }
 };
