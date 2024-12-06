@@ -1,0 +1,48 @@
+version: "3.9"
+
+services:
+  admin:
+    build:
+      context: ./admin
+      dockerfile: Dockerfile
+    ports:
+      - "50000:50000"
+    env_file:
+      - .env
+
+  estadoTareas:
+    build:
+      context: ./estadoTareas
+      dockerfile: Dockerfile
+    ports:
+      - "50001:50001"
+    env_file:
+      - .env
+
+  node_project:
+    build:
+      context: ./node_project
+      dockerfile: Dockerfile
+    ports:
+      - "50003:50003"
+    env_file:
+      - node_project/.env
+
+  student:
+    build:
+      context: ./student
+      dockerfile: Dockerfile
+    ports:
+      - "50002:50002"
+    env_file:
+      - .env
+
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:

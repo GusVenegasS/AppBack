@@ -157,10 +157,10 @@ async function selectBrigadas(req, res) {
 //funcion para que un usuario ueda ver sus brigadas seleccionadas
 
 async function getUsuariosBrigadas(req, res) {
-  const { usuario_id } = req.params;
+  const { usuario_id, periodoAcademico } = req.params;
 
-  if (!usuario_id) {
-    return res.status(400).json({ error: 'El usuario es requerido.' });
+  if (!usuario_id || !periodoAcademico) {
+    return res.status(400).json({ error: 'El usuario y el periodo académico es requerido.' });
   }
 
   try {
@@ -181,7 +181,11 @@ async function getUsuariosBrigadas(req, res) {
     }
 
     // Obtener información de las brigadas a las que pertenece el usuario
-    const brigadas = await brigadasCollection.find({ brigada_id: { $in: usuario.brigadas } }).project({ nombre: 1, actividad: 1, diaSemana: 1, _id: 0 }).toArray();
+    const brigadas = await brigadasCollection.find({
+       brigada_id: { $in: usuario.brigadas },
+       periodoAcademico: periodoAcademico
+       })
+       .project({ nombre: 1, actividad: 1, diaSemana: 1, _id: 0 }).toArray();
 
     res.status(200).json(brigadas);
   } catch (error) {
@@ -254,6 +258,13 @@ async function completarTarea(req, res) {
       ? `data:image/jpeg;base64,${evidencia}`
       : evidencia;
 
+
+       // Añadir la fecha de realización con formato específico
+    const fechaRealizacion = new Date();
+    fechaRealizacion.setSeconds(0);
+    fechaRealizacion.setMilliseconds(0);
+    fechaRealizacion.setHours(fechaRealizacion.getHours() - 5);
+
     // Actualizar la tarea con los asistentes, la evidencia y la observación, y marcarla como completada
     await tareasCollection.updateOne(
       { tarea_id },
@@ -262,7 +273,9 @@ async function completarTarea(req, res) {
           asistentes: asistentes,
           evidencia_id: formattedEvidencia,
           observacion: observacion,
-          estado: 'completada'
+          estado: 'completada',
+          fechaRealizacion: fechaRealizacion
+
         }
       }
     );
