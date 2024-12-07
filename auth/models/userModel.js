@@ -16,6 +16,16 @@ const usuarioSchema = new mongoose.Schema({
     },
   },
   brigadas: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Brigada' }],
+  imagenPerfil: { 
+    type: String, 
+    validate: {
+      validator: function (v) {
+        return !v || v.startsWith('data:image/') && v.length > 20;
+      },
+      message: (props) => `El valor proporcionado no es una imagen válida en formato base64.`,
+    },
+  },
+  periodoAcademico: { type: String, required: true },
   fechaCreacion: { type: Date, default: Date.now },
   rol: { type: String, required: true },
 });

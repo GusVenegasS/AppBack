@@ -20,11 +20,15 @@ exports.createStudents = async (req, res) => {
   try {
     const estudiantes = req.body;
 
+    if (!req.usuario || req.usuario.rol !== 'admin') {
+      return res.status(403).json({ message: 'No tienes permiso para realizar esta acción.' });
+    }
+
     if (!Array.isArray(estudiantes) || estudiantes.length === 0) {
       return res.status(400).json({ message: 'No se proporcionaron datos de estudiantes.' });
     }
 
-    console.log(`Usuario autenticado: ${req.user.email}`); // Ejemplo de uso de datos del token
+    console.log(`Usuario autenticado: ${req.usuario.email}`); // Ejemplo de uso de datos del token
 
     const usuariosCreados = [];
     for (const estudiante of estudiantes) {
@@ -34,11 +38,13 @@ exports.createStudents = async (req, res) => {
 
         // Crear el usuario
         const usuario = new Usuario({
-          usuario_id: new mongoose.Types.ObjectId().toString(),
-          nombre: estudiante.name,
+          usuario_id: estudiante.usuarioId,
+          nombre: estudiante.name,  
           correo: estudiante.email,
           contraseña: hashedPassword,
           telefono: estudiante.telefono,
+          rol: estudiante.rol,
+          periodoAcademico: req.usuario.periodo,
         });
 
         await usuario.save();
@@ -133,6 +139,7 @@ exports.getUserProfile = async (req, res) => {
       correo: usuario.correo,
       telefono: usuario.telefono,
       brigadas: usuario.brigadas,
+      imagenPerfil: usuario.imagenPerfil,
     });
   } catch (err) {
     console.log('Error:', err);  // Log para errores específicos
@@ -221,5 +228,62 @@ exports.cambiarContrasena = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error al cambiar la contraseña', error });
+  }
+};
+
+exports.updateProfilePhoto = async (req, res) => {
+  try {
+    const { imagenPerfil } = req.body;
+
+    if (!imagenPerfil) {
+      return res.status(400).json({ message: 'Imagen de perfil requerida.' });
+    }
+
+    const usuario = await Usuario.findOneAndUpdate(
+      {usuario_id: req.usuario.id }, // ID del usuario autenticado
+      { imagenPerfil }, // Actualiza la imagen de perfil
+      { new: true }
+    );
+
+    if (!usuario) {
+      return res.status(404).json({ message: 'Usuario no encontrado.' });
+    }
+
+    res.status(200).json({ message: 'Imagen de perfil actualizada con éxito.', imagenPerfil: usuario.imagenPerfil });
+  } catch (error) {
+    console.error('Error al actualizar la foto de perfil:', error);
+    res.status(500).json({ message: 'Error del servidor al guardar la imagen de perfil.' });
+  }
+};
+
+exports.changePassword = async (req, res) => {
+  try {
+    const { newPassword } = req.body;
+
+    // Validación de la nueva contraseña (por ejemplo, mínimo 8 caracteres)
+    if (!newPassword || newPassword.length < 8) {
+      return res.status(400).json({ message: 'La nueva contraseña debe tener al menos 8 caracteres.' });
+    }
+
+    // Recuperar al usuario desde la base de datos usando el ID del token
+    const usuarioId = req.usuario?.id; // Asegúrate de que `req.usuario` tenga el ID
+    if (!usuarioId) {
+      return res.status(401).json({ message: 'Usuario no autorizado.' });
+    }
+
+    const usuario = await Usuario.findOne({usuario_id: req.usuario.id }); // Consulta el documento desde la base de datos
+    if (!usuario) {
+      return res.status(404).json({ message: 'Usuario no encontrado.' });
+    }
+
+    // Encriptar la nueva contraseña y guardarla
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    usuario.contraseña = hashedPassword;
+    await usuario.save({ validateBeforeSave: false });
+
+    return res.status(200).json({ message: 'Contraseña cambiada correctamente.' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Ocurrió un error al cambiar la contraseña.' });
   }
 };
