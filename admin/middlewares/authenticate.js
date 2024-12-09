@@ -1,11 +1,12 @@
 const jwt = require('jsonwebtoken');
+const config = require('../config')
 
 const authMiddleware = (req, res, next) => {
   console.log('req', req.header('Authorization'))
   const token = req.header('Authorization')?.replace('Bearer ', '');
   console.log("tokennn", token);
 
-  const claveSecreta = process.env.MONGO_URI
+  const claveSecreta = config.getSecret();
 
   if (!token) {
     return res.status(401).json({ message: 'Token no proporcionado' });
