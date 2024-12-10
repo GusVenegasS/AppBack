@@ -4,8 +4,9 @@ const authMiddleware = (req, res, next) => {
   console.log('req', req.header('Authorization'))
   const token = req.header('Authorization')?.replace('Bearer ', '');
   console.log("tokennn", token);
+  console.log("Hola mundo")
 
-  const claveSecreta = process.env.MONGO_URI
+  const claveSecreta = process.env.JWT_SECRET
 
   if (!token) {
     return res.status(401).json({ message: 'Token no proporcionado' });

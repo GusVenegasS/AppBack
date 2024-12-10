@@ -38,7 +38,7 @@ async function getBrigadasDisponibles(req, res) {
     // Consulta las brigadas con cupos disponibles
     const brigadas = await brigadasCollection.find({
       periodoAcademico,
-      $where: "this.usuarios.length < 3"
+      $expr: { $lt: [{ $size: "$usuarios"}, 3]}
     }).toArray();
     if (brigadas.length === 0) {
      return res.status(200).json([]); 
