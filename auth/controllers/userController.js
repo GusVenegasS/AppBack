@@ -33,13 +33,25 @@ exports.createStudents = async (req, res) => {
     const usuariosCreados = [];
     for (const estudiante of estudiantes) {
       try {
+        // Verificar si ya existe un usuario con el correo o el usuarioId
+        const usuarioExistente = await Usuario.findOne({
+          $or: [{ correo: estudiante.email }, { usuario_id: estudiante.usuarioId }],
+        });
+
+        if (usuarioExistente) {
+          console.error(`El correo ${estudiante.email} o el número único ${estudiante.usuarioId} ya existe.`);
+          return res.status(400).json({
+            message: `El correo ${estudiante.email} o el número único ${estudiante.usuarioId} ya existe.`,
+          });
+        }
+
         // Hash de la contraseña
         const hashedPassword = await bcrypt.hash(estudiante.password, 10);
 
         // Crear el usuario
         const usuario = new Usuario({
           usuario_id: estudiante.usuarioId,
-          nombre: estudiante.name,  
+          nombre: estudiante.name,
           correo: estudiante.email,
           contraseña: hashedPassword,
           telefono: estudiante.telefono,
@@ -70,11 +82,11 @@ exports.createStudents = async (req, res) => {
           }
         });
       } catch (err) {
-        if (err.code === 11000) {
-          console.error(`El correo ${estudiante.email} ya existe.`);
-        } else {
-          throw err;
-        }
+        console.error(`Error al procesar el estudiante ${estudiante.email}:`, err);
+        return res.status(500).json({
+          message: `Error al procesar el estudiante ${estudiante.email}`,
+          error: err,
+        });
       }
     }
 
