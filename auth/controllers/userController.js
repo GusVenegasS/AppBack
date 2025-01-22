@@ -68,7 +68,7 @@ exports.createStudents = async (req, res) => {
           subject: 'Bienvenido a la plataforma',
           text: `Hola ${estudiante.name}, tu cuenta ha sido creada exitosamente. 
           
-          Tu contraseña es: ${estudiante.password}.
+          Tu contraseña es: ${estudiante.password}
           Por favor, cámbiala después de iniciar sesión.`,
         };
 
