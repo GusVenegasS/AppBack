@@ -1,7 +1,7 @@
 //route.js
 var express = require('express');
 var admin = require('../controllers/admin');
-var token = require('../../auth/middlewares/authenticate')
+var token = require('../middlewares/authenticate')
 var router = express.Router();
 
 router.post('/crearPeriodo', token, admin.crearPeriodo);

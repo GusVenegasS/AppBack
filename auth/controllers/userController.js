@@ -1,10 +1,9 @@
+require('dotenv').config(); // Cargar variables de entorno
 const Usuario = require('../models/userModel');
 const Periodo = require('../models/periodoModel');
 const bcrypt = require('bcrypt');
-const mongoose = require('mongoose');
 const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
-const config = require('../config/config')
 
 // Configurar el transportador de nodemailer
 const transporter = nodemailer.createTransport({
@@ -104,7 +103,7 @@ exports.createStudents = async (req, res) => {
 
 // Login de usuario
 exports.login = async (req, res) => {
-  const { email, password, periodo} = req.body;
+  const { email, password, periodo } = req.body;
 
   try {
     const usuario = await Usuario.findOne({ correo: email });
@@ -119,8 +118,8 @@ exports.login = async (req, res) => {
 
     // Generar el token
     const token = jwt.sign(
-      { id: usuario.usuario_id, email: usuario.correo, rol: usuario.rol, periodo: periodo,},
-      config.getSecret() || 'clave_secreta', // Usa una clave secreta en las variables de entorno
+      { id: usuario.usuario_id, email: usuario.correo, rol: usuario.rol, periodo: periodo, },
+      process.env.JWT_SECRET || 'clave_secreta', // Usa una clave secreta en las variables de entorno
       { expiresIn: '1h' } // Expiración del token
     );
 
@@ -140,7 +139,7 @@ exports.getUserProfile = async (req, res) => {
   try {
     console.log('Usuario ID recibido del token:', req.usuario.id); // Log de depuración
 
-    const usuario = await Usuario.findOne({usuario_id: req.usuario.id });
+    const usuario = await Usuario.findOne({ usuario_id: req.usuario.id });
 
     if (!usuario) {
       return res.status(404).json({ message: 'Usuario no encontrado' });
@@ -176,7 +175,7 @@ exports.actualizarTelefono = async (req, res) => {
     const userId = req.usuario.id; // Asumimos que el middleware extrae el ID del usuario autenticado
     const { telefono } = req.body;
 
-    const usuario = await Usuario.findOneAndUpdate({usuario_id: req.usuario.id }, { telefono },
+    const usuario = await Usuario.findOneAndUpdate({ usuario_id: req.usuario.id }, { telefono },
       { new: true });
 
     if (!usuario) {
@@ -252,7 +251,7 @@ exports.updateProfilePhoto = async (req, res) => {
     }
 
     const usuario = await Usuario.findOneAndUpdate(
-      {usuario_id: req.usuario.id }, // ID del usuario autenticado
+      { usuario_id: req.usuario.id }, // ID del usuario autenticado
       { imagenPerfil }, // Actualiza la imagen de perfil
       { new: true }
     );
@@ -283,7 +282,7 @@ exports.changePassword = async (req, res) => {
       return res.status(401).json({ message: 'Usuario no autorizado.' });
     }
 
-    const usuario = await Usuario.findOne({usuario_id: req.usuario.id }); // Consulta el documento desde la base de datos
+    const usuario = await Usuario.findOne({ usuario_id: req.usuario.id }); // Consulta el documento desde la base de datos
     if (!usuario) {
       return res.status(404).json({ message: 'Usuario no encontrado.' });
     }

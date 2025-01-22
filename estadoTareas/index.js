@@ -1,7 +1,8 @@
+require('dotenv').config(); // Cargar variables de entorno
 const cron = require('node-cron');
 const MongoClient = require('mongodb').MongoClient;
 
-var url = "mongodb://localhost:27017";
+var url = process.env.MONGO_URI;
 
 cron.schedule("0 0 * * *", () => { // Ejecuta a medianoche todos los días
     console.log("Entre a ejecutar");

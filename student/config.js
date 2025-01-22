@@ -1,9 +1,14 @@
 //config.js
+require('dotenv').config(); // Cargar variables de entorno
+
 module.exports = {
     getDB: function () {
-        return "mongodb://localhost:27017";
+        return process.env.MONGO_URI
     },
     getPort: function () {
-        return 50002;
-    }
+        return process.env.PORT;
+    },
+    getSecret: function () {
+        return process.env.JWT_SECRET;
+    },
 }

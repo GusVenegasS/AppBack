@@ -5,42 +5,44 @@ services:
     build:
       context: ./admin
       dockerfile: Dockerfile
+    image: gusvs/appback-admin:latest
     ports:
       - "50000:50000"
     env_file:
-      - .env
+      - admin/.env
 
-  estadoTareas:
+  estadotareas:
     build:
       context: ./estadoTareas
       dockerfile: Dockerfile
+    image: gusvs/appback-tareas:latest
     ports:
       - "50001:50001"
-    env_file:
-      - .env
 
-  node_project:
+  auth:
     build:
-      context: ./node_project
+      context: ./auth
       dockerfile: Dockerfile
+    image: gusvs/appback-auth:latest
     ports:
-      - "50003:50003"
+      - "5001:5001"
     env_file:
-      - node_project/.env
+      - auth/.env
 
   student:
     build:
       context: ./student
       dockerfile: Dockerfile
+    image: gusvs/appback-student:latest
     ports:
       - "50002:50002"
     env_file:
-      - .env
+      - student/.env
 
   mongo:
     image: mongo:latest
     ports:
-      - "27017:27017"
+      - "27018:27017"
     volumes:
       - mongo-data:/data/db
 
