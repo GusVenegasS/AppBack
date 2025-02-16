@@ -15,7 +15,7 @@ const usuarioSchema = new mongoose.Schema({
       message: (props) => `${props.value} no es un número de teléfono válido.`,
     },
   },
-  brigadas: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Brigada' }],
+  brigadas: { type: [String], default: [] },
   imagenPerfil: { 
     type: String, 
     validate: {

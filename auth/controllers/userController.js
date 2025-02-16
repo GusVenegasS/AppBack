@@ -197,7 +197,9 @@ exports.cambiarContrasena = async (req, res) => {
   const { correo } = req.body;
 
   try {
+    console.log("Buscando usuario con correo:", correo);
     const usuario = await Usuario.findOne({ correo });
+    console.log(usuario);
     if (!usuario) {
       return res.status(404).json({ message: 'Usuario no encontrado' });
     }
@@ -222,7 +224,7 @@ exports.cambiarContrasena = async (req, res) => {
       subject: 'Contraseña actualizada',
       text: `Hola ${usuario.nombre}, tu contraseña ha sido actualizada con éxito. 
       
-      Tu nueva contraseña es: ${nuevaContrasena}.
+      Tu nueva contraseña es: ${nuevaContrasena}
       Por favor, cámbiala después de iniciar sesión.`,
     };
 
@@ -249,6 +251,8 @@ exports.updateProfilePhoto = async (req, res) => {
     if (!imagenPerfil) {
       return res.status(400).json({ message: 'Imagen de perfil requerida.' });
     }
+
+    imagenPerfil = `data:image/jpeg;base64,${imagenPerfil}`;
 
     const usuario = await Usuario.findOneAndUpdate(
       { usuario_id: req.usuario.id }, // ID del usuario autenticado
