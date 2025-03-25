@@ -5,46 +5,66 @@ services:
     build:
       context: ./admin
       dockerfile: Dockerfile
-    image: gusvs/appback-admin:latest
+    image: poliperros/appback-admin:latest
+    restart: always
     ports:
       - "50000:50000"
     env_file:
       - admin/.env
+    networks:
+      - app-network
 
   estadotareas:
     build:
       context: ./estadoTareas
       dockerfile: Dockerfile
-    image: gusvs/appback-tareas:latest
+    image: poliperros/appback-tareas:latest
+    restart: always
     ports:
       - "50001:50001"
+    networks:
+      - app-network
 
   auth:
     build:
       context: ./auth
       dockerfile: Dockerfile
-    image: gusvs/appback-auth:latest
+    image: poliperros/appback-auth:latest
+    restart: always
     ports:
       - "5001:5001"
     env_file:
       - auth/.env
+    networks:
+      - app-network
 
   student:
     build:
       context: ./student
       dockerfile: Dockerfile
-    image: gusvs/appback-student:latest
+    image: poliperros/appback-student:latest
+    restart: always
     ports:
       - "50002:50002"
     env_file:
       - student/.env
+    networks:
+      - app-network
 
   mongo:
     image: mongo:latest
-    ports:
-      - "27018:27017"
+    container_name: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: Malibu100199*
     volumes:
       - mongo-data:/data/db
+    networks:
+      - app-network
 
 volumes:
   mongo-data:
+
+networks:
+  app-network:
