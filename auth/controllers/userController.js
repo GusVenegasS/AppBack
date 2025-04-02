@@ -9,8 +9,8 @@ const jwt = require('jsonwebtoken');
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'ronnie.malo12@gmail.com', // Tu correo de Gmail
-    pass: 'cquq ragm ugnl srab', // Contraseña de aplicación de Gmail
+    user: 'poliperros.ec@gmail.com', // Tu correo de Gmail
+    pass: 'sbdg bsxa eruk mxas', // Contraseña de aplicación de Gmail
   },
 });
 
